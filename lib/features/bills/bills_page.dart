@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/state/view_status.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
+import '../../core/widgets/filter_bar.dart';
 import '../../core/widgets/primary_button.dart';
+import '../../core/widgets/sheet_widgets.dart';
 import '../../core/widgets/state_views.dart';
 import '../../models/facture.dart';
 import '../auth/session_provider.dart';
@@ -24,7 +25,16 @@ class BillsPage extends StatelessWidget {
         child: Column(
           children: [
             if (provider.availableServices.length > 1)
-              _FilterBar(provider: provider),
+              FilterBar<String?>(
+                selected: provider.filter,
+                onSelect: (value) =>
+                    context.read<BillsProvider>().setFilter(value),
+                options: <(String, String?)>[
+                  ('Tous', null),
+                  for (final service in provider.availableServices)
+                    (service, service),
+                ],
+              ),
             Expanded(child: _Body(provider: provider)),
             if (provider.selectedTotal > 0) _PayBar(provider: provider),
           ],
@@ -73,78 +83,6 @@ class _Body extends StatelessWidget {
                 context.read<BillsProvider>().toggle(facture.reference),
           );
         },
-      ),
-    );
-  }
-}
-
-class _FilterBar extends StatelessWidget {
-  final BillsProvider provider;
-
-  const _FilterBar({required this.provider});
-
-  @override
-  Widget build(BuildContext context) {
-    final services = provider.availableServices;
-    return SizedBox(
-      height: 58,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        children: [
-          _FilterChip(
-            label: 'Tous',
-            selected: provider.filter == null,
-            onTap: () => context.read<BillsProvider>().setFilter(null),
-          ),
-          for (final service in services)
-            _FilterChip(
-              label: service,
-              selected: provider.filter == service,
-              onTap: () => context.read<BillsProvider>().setFilter(service),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 10),
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.brand : AppColors.surface,
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(
-              color: selected ? AppColors.brand : AppColors.border,
-            ),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              color: selected ? Colors.white : AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -365,19 +303,19 @@ class _PayConfirmSheetState extends State<_PayConfirmSheet> {
         final session = context.read<SessionProvider>();
         return Column(
           children: [
-            _StatusIcon(icon: Icons.check_rounded, color: AppColors.credit),
+            const StatusIcon(icon: Icons.check_rounded, color: AppColors.credit),
             const SizedBox(height: 18),
             Text('Paiement réussi', style: theme.textTheme.headlineSmall),
             const SizedBox(height: 20),
-            _SummaryRow(
+            SummaryRow(
               label: 'Factures payées',
               value: '${widget.provider.lastPaidCount}',
             ),
-            _SummaryRow(
+            SummaryRow(
               label: 'Total payé',
               value: Formatters.money(widget.provider.lastPaidTotal),
             ),
-            _SummaryRow(
+            SummaryRow(
               label: 'Nouveau solde',
               value: Formatters.money(session.balance),
             ),
@@ -391,7 +329,7 @@ class _PayConfirmSheetState extends State<_PayConfirmSheet> {
       case _SheetState.error:
         return Column(
           children: [
-            _StatusIcon(icon: Icons.close_rounded, color: AppColors.debit),
+            const StatusIcon(icon: Icons.close_rounded, color: AppColors.debit),
             const SizedBox(height: 18),
             Text('Paiement échoué', style: theme.textTheme.headlineSmall),
             const SizedBox(height: 10),
@@ -406,11 +344,6 @@ class _PayConfirmSheetState extends State<_PayConfirmSheet> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(54),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                    ),
                     child: const Text('Fermer'),
                   ),
                 ),
@@ -427,20 +360,14 @@ class _PayConfirmSheetState extends State<_PayConfirmSheet> {
           children: [
             Text('Payer les factures', style: theme.textTheme.headlineSmall),
             const SizedBox(height: 20),
-            _SummaryRow(label: 'Factures', value: '${widget.count}'),
-            _SummaryRow(
-                label: 'Total', value: Formatters.money(widget.total)),
+            SummaryRow(label: 'Factures', value: '${widget.count}'),
+            SummaryRow(label: 'Total', value: Formatters.money(widget.total)),
             const SizedBox(height: 22),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(54),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                    ),
                     child: const Text('Annuler'),
                   ),
                 ),
@@ -453,51 +380,5 @@ class _PayConfirmSheetState extends State<_PayConfirmSheet> {
           ],
         );
     }
-  }
-}
-
-class _StatusIcon extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-
-  const _StatusIcon({required this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 72,
-      width: 72,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(icon, color: color, size: 40),
-    ).animate().scale(
-          duration: 350.ms,
-          curve: Curves.easeOutBack,
-          begin: const Offset(0.5, 0.5),
-        );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _SummaryRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: theme.textTheme.bodyMedium),
-          Text(value, style: theme.textTheme.titleMedium),
-        ],
-      ),
-    );
   }
 }

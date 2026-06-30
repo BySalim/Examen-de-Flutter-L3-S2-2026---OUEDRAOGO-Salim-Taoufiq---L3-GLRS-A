@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/network/api_client.dart';
@@ -8,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/widgets/amount_keypad.dart';
 import '../../core/widgets/primary_button.dart';
+import '../../core/widgets/sheet_widgets.dart';
 import '../auth/session_provider.dart';
 import 'transfer_provider.dart';
 
@@ -37,6 +37,7 @@ class _TransferViewState extends State<_TransferView> {
   final _phoneController = TextEditingController(text: '+221');
   String _amount = '';
   String? _error;
+  bool _opening = false;
 
   static final RegExp _phonePattern = RegExp(r'^\+221\d{9}$');
 
@@ -60,6 +61,8 @@ class _TransferViewState extends State<_TransferView> {
   }
 
   Future<void> _continue() async {
+    if (_opening) return;
+
     final session = context.read<SessionProvider>();
     final phone = _phoneController.text.trim();
     final amount = _amountValue;
@@ -82,20 +85,24 @@ class _TransferViewState extends State<_TransferView> {
     setState(() => _error = null);
     FocusScope.of(context).unfocus();
 
-    final provider = context.read<TransferProvider>();
-    final success = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _ConfirmSheet(
-        provider: provider,
-        receiverPhone: phone,
-        amount: amount,
-      ),
-    );
-
-    if (success == true && mounted) {
-      Navigator.of(context).pop(true);
+    _opening = true;
+    try {
+      final provider = context.read<TransferProvider>();
+      final success = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => _ConfirmSheet(
+          provider: provider,
+          receiverPhone: phone,
+          amount: amount,
+        ),
+      );
+      if (success == true && mounted) {
+        Navigator.of(context).pop(true);
+      }
+    } finally {
+      _opening = false;
     }
   }
 
@@ -131,11 +138,15 @@ class _TransferViewState extends State<_TransferView> {
                     Text('Montant à envoyer',
                         style: theme.textTheme.bodyMedium),
                     const SizedBox(height: 10),
-                    Text(
-                      Formatters.money(_amountValue),
-                      style: theme.textTheme.displaySmall?.copyWith(
-                        color: AppColors.brand,
-                        fontWeight: FontWeight.w700,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        Formatters.money(_amountValue),
+                        maxLines: 1,
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          color: AppColors.brand,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -245,21 +256,16 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
         final result = widget.provider.result;
         return Column(
           children: [
-            _StatusIcon(
-              icon: Icons.check_rounded,
-              color: AppColors.credit,
-            ),
+            const StatusIcon(icon: Icons.check_rounded, color: AppColors.credit),
             const SizedBox(height: 18),
             Text('Transfert réussi', style: theme.textTheme.headlineSmall),
             const SizedBox(height: 20),
-            _SummaryRow(
-                label: 'Montant',
-                value: Formatters.money(widget.amount)),
-            _SummaryRow(
+            SummaryRow(label: 'Montant', value: Formatters.money(widget.amount)),
+            SummaryRow(
                 label: 'Destinataire',
                 value: Formatters.phone(widget.receiverPhone)),
             if (result != null)
-              _SummaryRow(
+              SummaryRow(
                 label: 'Nouveau solde',
                 value: Formatters.money(result.senderBalanceAfter),
               ),
@@ -273,7 +279,7 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
       case _SheetState.error:
         return Column(
           children: [
-            _StatusIcon(icon: Icons.close_rounded, color: AppColors.debit),
+            const StatusIcon(icon: Icons.close_rounded, color: AppColors.debit),
             const SizedBox(height: 18),
             Text('Transfert échoué', style: theme.textTheme.headlineSmall),
             const SizedBox(height: 10),
@@ -288,11 +294,6 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(54),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                    ),
                     child: const Text('Fermer'),
                   ),
                 ),
@@ -310,10 +311,8 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
             Text('Confirmer le transfert',
                 style: theme.textTheme.headlineSmall),
             const SizedBox(height: 20),
-            _SummaryRow(
-                label: 'Montant',
-                value: Formatters.money(widget.amount)),
-            _SummaryRow(
+            SummaryRow(label: 'Montant', value: Formatters.money(widget.amount)),
+            SummaryRow(
                 label: 'Destinataire',
                 value: Formatters.phone(widget.receiverPhone)),
             const SizedBox(height: 22),
@@ -322,11 +321,6 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(54),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                    ),
                     child: const Text('Annuler'),
                   ),
                 ),
@@ -339,51 +333,5 @@ class _ConfirmSheetState extends State<_ConfirmSheet> {
           ],
         );
     }
-  }
-}
-
-class _StatusIcon extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-
-  const _StatusIcon({required this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 72,
-      width: 72,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
-        shape: BoxShape.circle,
-      ),
-      child: Icon(icon, color: color, size: 40),
-    ).animate().scale(
-          duration: 350.ms,
-          curve: Curves.easeOutBack,
-          begin: const Offset(0.5, 0.5),
-        );
-  }
-}
-
-class _SummaryRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _SummaryRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: theme.textTheme.bodyMedium),
-          Text(value, style: theme.textTheme.titleMedium),
-        ],
-      ),
-    );
   }
 }
