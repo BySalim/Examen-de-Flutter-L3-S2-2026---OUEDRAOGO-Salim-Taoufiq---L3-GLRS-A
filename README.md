@@ -37,6 +37,10 @@ factures.
     <td align="center"><img src="screenshots/07-accueil-solde-maj.png" width="200"><br/>Solde mis à jour</td>
     <td align="center"><img src="screenshots/08-historique.png" width="200"><br/>Historique</td>
   </tr>
+  <tr>
+    <td align="center"><img src="screenshots/09-profil.png" width="200"><br/>Profil</td>
+    <td align="center"><img src="screenshots/10-icone-app.png" width="200"><br/>Icône de l'application</td>
+  </tr>
 </table>
 
 ## Architecture
