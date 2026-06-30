@@ -7,6 +7,8 @@ de l'argent, de payer ses factures et de suivre l'historique de ses transactions
 L'application consomme la **BadWallet API** (`http://localhost:8080`) et son service de
 factures.
 
+> 📥 **APK Android installable** : [`release/app-release.apk`](release/app-release.apk) — ou via la [**Release v1.0**](https://github.com/BySalim/Examen-de-Flutter-L3-S2-2026---OUEDRAOGO-Salim-Taoufiq---L3-GLRS-A/releases/tag/v1.0).
+
 ## Fonctionnalités
 
 - **Authentification / Onboarding** : splash animé, connexion par numéro de téléphone
