@@ -114,6 +114,7 @@ flutter build apk --release
 ```
 
 Le fichier est généré dans `build/app/outputs/flutter-apk/app-release.apk`.
+Un APK déjà construit est également fourni dans le dossier [`release/`](release/) et publié dans les **Releases** du dépôt.
 L'icône d'application personnalisée est gérée par `flutter_launcher_icons`
 (`dart run flutter_launcher_icons` après modification de l'icône).
 
