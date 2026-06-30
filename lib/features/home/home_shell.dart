@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../core/network/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/state_views.dart';
+import '../auth/session_provider.dart';
+import '../dashboard/dashboard_page.dart';
+import '../dashboard/dashboard_provider.dart';
 import '../profile/profile_page.dart';
 
 class HomeShell extends StatefulWidget {
@@ -14,20 +19,28 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
-  static const List<Widget> _tabs = [
-    _PlaceholderTab(title: 'Tableau de bord', icon: Icons.dashboard_rounded),
-    _PlaceholderTab(title: 'Historique', icon: Icons.history_rounded),
-    _PlaceholderTab(title: 'Factures', icon: Icons.receipt_long_rounded),
-    ProfilePage(),
-  ];
+  void _goToTab(int index) => setState(() => _index = index);
 
   @override
   Widget build(BuildContext context) {
+    final tabs = <Widget>[
+      ChangeNotifierProvider<DashboardProvider>(
+        create: (ctx) => DashboardProvider(
+          ctx.read<ApiClient>(),
+          ctx.read<SessionProvider>(),
+        )..load(),
+        child: DashboardPage(onGoToTab: _goToTab),
+      ),
+      const _PlaceholderTab(title: 'Historique', icon: Icons.history_rounded),
+      const _PlaceholderTab(title: 'Factures', icon: Icons.receipt_long_rounded),
+      const ProfilePage(),
+    ];
+
     return Scaffold(
-      body: IndexedStack(index: _index, children: _tabs),
+      body: IndexedStack(index: _index, children: tabs),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        onDestinationSelected: _goToTab,
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         indicatorColor: AppColors.brand.withValues(alpha: 0.12),
