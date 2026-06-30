@@ -3,12 +3,13 @@ import 'package:provider/provider.dart';
 
 import '../../core/network/api_client.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/widgets/state_views.dart';
 import '../auth/session_provider.dart';
 import '../bills/bills_page.dart';
 import '../bills/bills_provider.dart';
 import '../dashboard/dashboard_page.dart';
 import '../dashboard/dashboard_provider.dart';
+import '../history/history_page.dart';
+import '../history/history_provider.dart';
 import '../profile/profile_page.dart';
 
 class HomeShell extends StatefulWidget {
@@ -33,7 +34,13 @@ class _HomeShellState extends State<HomeShell> {
         )..load(),
         child: DashboardPage(onGoToTab: _goToTab),
       ),
-      const _PlaceholderTab(title: 'Historique', icon: Icons.history_rounded),
+      ChangeNotifierProvider<HistoryProvider>(
+        create: (ctx) => HistoryProvider(
+          ctx.read<ApiClient>(),
+          ctx.read<SessionProvider>(),
+        )..load(),
+        child: const HistoryPage(),
+      ),
       ChangeNotifierProvider<BillsProvider>(
         create: (ctx) => BillsProvider(
           ctx.read<ApiClient>(),
@@ -76,21 +83,6 @@ class _HomeShellState extends State<HomeShell> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _PlaceholderTab extends StatelessWidget {
-  final String title;
-  final IconData icon;
-
-  const _PlaceholderTab({required this.title, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: EmptyView(message: 'Bientôt disponible', icon: icon),
     );
   }
 }
