@@ -73,6 +73,11 @@ class SessionProvider extends ChangeNotifier {
           : e.message;
       notifyListeners();
       return false;
+    } catch (_) {
+      _status = ViewStatus.error;
+      _error = 'Données du compte invalides.';
+      notifyListeners();
+      return false;
     }
   }
 

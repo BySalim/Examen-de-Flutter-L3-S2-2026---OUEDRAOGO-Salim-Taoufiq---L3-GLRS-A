@@ -8,6 +8,30 @@ import '../auth/session_provider.dart';
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
+  Future<void> _confirmLogout(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Se déconnecter ?'),
+        content: const Text(
+            'Vous devrez ressaisir votre numéro pour vous reconnecter.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Se déconnecter'),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && context.mounted) {
+      await context.read<SessionProvider>().logout();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -72,13 +96,10 @@ class ProfilePage extends StatelessWidget {
             ),
           const SizedBox(height: 32),
           OutlinedButton.icon(
-            onPressed: () => context.read<SessionProvider>().logout(),
+            onPressed: () => _confirmLogout(context),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.debit,
               side: const BorderSide(color: AppColors.debit),
-              minimumSize: const Size.fromHeight(54),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
             ),
             icon: const Icon(Icons.logout_rounded),
             label: const Text('Se déconnecter'),

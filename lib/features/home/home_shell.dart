@@ -21,8 +21,12 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
+  HistoryProvider? _history;
 
-  void _goToTab(int index) => setState(() => _index = index);
+  void _goToTab(int index) {
+    if (index == 1) _history?.load();
+    setState(() => _index = index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +39,13 @@ class _HomeShellState extends State<HomeShell> {
         child: DashboardPage(onGoToTab: _goToTab),
       ),
       ChangeNotifierProvider<HistoryProvider>(
-        create: (ctx) => HistoryProvider(
-          ctx.read<ApiClient>(),
-          ctx.read<SessionProvider>(),
-        )..load(),
+        create: (ctx) {
+          _history = HistoryProvider(
+            ctx.read<ApiClient>(),
+            ctx.read<SessionProvider>(),
+          )..load();
+          return _history!;
+        },
         child: const HistoryPage(),
       ),
       ChangeNotifierProvider<BillsProvider>(

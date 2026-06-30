@@ -63,6 +63,9 @@ class BillsProvider extends ChangeNotifier {
     } on ApiException catch (e) {
       _error = e.message;
       _status = ViewStatus.error;
+    } catch (_) {
+      _error = 'Données illisibles.';
+      _status = ViewStatus.error;
     }
     notifyListeners();
   }
@@ -110,7 +113,17 @@ class BillsProvider extends ChangeNotifier {
       await load();
       return true;
     } on ApiException catch (e) {
-      _paymentError = e.message;
+      if (paid.isNotEmpty) {
+        // Certaines factures ont déjà été débitées côté serveur : on resynchronise.
+        _lastPaidTotal = total;
+        _lastPaidCount = paid.length;
+        if (lastBalance != null) _session.updateBalance(lastBalance);
+        _paymentError =
+            'Certaines factures ont été payées, d\'autres ont échoué : ${e.message}';
+        await load();
+      } else {
+        _paymentError = e.message;
+      }
       return false;
     }
   }

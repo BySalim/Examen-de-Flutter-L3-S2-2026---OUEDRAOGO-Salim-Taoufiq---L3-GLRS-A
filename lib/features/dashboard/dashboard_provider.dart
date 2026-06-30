@@ -34,6 +34,9 @@ class DashboardProvider extends ChangeNotifier {
     } on ApiException catch (e) {
       _error = e.message;
       _status = ViewStatus.error;
+    } catch (_) {
+      _error = 'Données illisibles.';
+      _status = ViewStatus.error;
     }
     notifyListeners();
   }

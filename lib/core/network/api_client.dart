@@ -47,9 +47,14 @@ class ApiClient {
 
   dynamic _decode(http.Response response) {
     final status = response.statusCode;
-    final body = response.bodyBytes.isEmpty
-        ? null
-        : jsonDecode(utf8.decode(response.bodyBytes));
+    dynamic body;
+    try {
+      body = response.bodyBytes.isEmpty
+          ? null
+          : jsonDecode(utf8.decode(response.bodyBytes));
+    } on FormatException {
+      throw ApiException('Réponse du serveur illisible.', statusCode: status);
+    }
 
     if (status >= 200 && status < 300) return body;
 

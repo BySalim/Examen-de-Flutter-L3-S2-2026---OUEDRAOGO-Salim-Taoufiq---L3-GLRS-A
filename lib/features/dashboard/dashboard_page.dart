@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/state/view_status.dart';
@@ -28,8 +27,8 @@ class _DashboardPageState extends State<DashboardPage> {
       MaterialPageRoute(builder: (_) => const TransferScreen()),
     );
     if (!mounted) return;
-    context.read<DashboardProvider>().load();
     if (done == true) {
+      context.read<DashboardProvider>().load();
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(const SnackBar(
@@ -59,7 +58,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 code: session.walletCode,
                 hidden: _hidden,
                 onToggle: () => setState(() => _hidden = !_hidden),
-              ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.08),
+              ),
               const SizedBox(height: 24),
               _QuickActions(
                 onTransfer: _openTransfer,
@@ -175,12 +174,19 @@ class _BalanceCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          Text(
-            hidden ? '•  •  •  •  •' : Formatters.money(balance),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 34,
-              fontWeight: FontWeight.w700,
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                hidden ? '•  •  •  •  •' : Formatters.money(balance),
+                maxLines: 1,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 34,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 18),
