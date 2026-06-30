@@ -8,6 +8,7 @@ import '../../core/utils/formatters.dart';
 import '../../core/widgets/state_views.dart';
 import '../../core/widgets/transaction_tile.dart';
 import '../auth/session_provider.dart';
+import '../transfers/transfer_screen.dart';
 import 'dashboard_provider.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -22,10 +23,20 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   bool _hidden = false;
 
-  void _openTransfer() {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('Bientôt disponible')));
+  Future<void> _openTransfer() async {
+    final done = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const TransferScreen()),
+    );
+    if (!mounted) return;
+    context.read<DashboardProvider>().load();
+    if (done == true) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+          content: Text('Transfert effectué avec succès.'),
+          backgroundColor: AppColors.credit,
+        ));
+    }
   }
 
   @override
