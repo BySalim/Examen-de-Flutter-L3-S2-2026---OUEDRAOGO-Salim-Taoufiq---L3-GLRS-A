@@ -22,6 +22,23 @@ factures.
   (vert pour les entrées, rouge pour les sorties).
 - **Profil** : informations du portefeuille et déconnexion.
 
+## Captures d'écran
+
+<table>
+  <tr>
+    <td align="center"><img src="screenshots/01-connexion.png" width="200"><br/>Connexion</td>
+    <td align="center"><img src="screenshots/02-code-pin.png" width="200"><br/>Code PIN</td>
+    <td align="center"><img src="screenshots/03-accueil.png" width="200"><br/>Tableau de bord</td>
+    <td align="center"><img src="screenshots/04-factures.png" width="200"><br/>Factures</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="screenshots/05-confirmation-paiement.png" width="200"><br/>Confirmation</td>
+    <td align="center"><img src="screenshots/06-paiement-reussi.png" width="200"><br/>Paiement réussi</td>
+    <td align="center"><img src="screenshots/07-accueil-solde-maj.png" width="200"><br/>Solde mis à jour</td>
+    <td align="center"><img src="screenshots/08-historique.png" width="200"><br/>Historique</td>
+  </tr>
+</table>
+
 ## Architecture
 
 Organisation **feature-first** :
