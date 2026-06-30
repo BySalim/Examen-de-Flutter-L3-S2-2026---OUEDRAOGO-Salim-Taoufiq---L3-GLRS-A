@@ -5,6 +5,8 @@ import '../../core/network/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/state_views.dart';
 import '../auth/session_provider.dart';
+import '../bills/bills_page.dart';
+import '../bills/bills_provider.dart';
 import '../dashboard/dashboard_page.dart';
 import '../dashboard/dashboard_provider.dart';
 import '../profile/profile_page.dart';
@@ -32,7 +34,13 @@ class _HomeShellState extends State<HomeShell> {
         child: DashboardPage(onGoToTab: _goToTab),
       ),
       const _PlaceholderTab(title: 'Historique', icon: Icons.history_rounded),
-      const _PlaceholderTab(title: 'Factures', icon: Icons.receipt_long_rounded),
+      ChangeNotifierProvider<BillsProvider>(
+        create: (ctx) => BillsProvider(
+          ctx.read<ApiClient>(),
+          ctx.read<SessionProvider>(),
+        )..load(),
+        child: const BillsPage(),
+      ),
       const ProfilePage(),
     ];
 
